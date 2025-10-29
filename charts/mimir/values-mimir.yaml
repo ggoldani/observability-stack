@@ -1,0 +1,55 @@
+# charts/mimir/values-mimir.yaml
+# Mimir - LAB no Kind com structuredConfig (evita conflitos do chart)
+
+alertmanager:
+  enabled: false
+compactor:
+  persistentVolume:
+    enabled: false
+distributor:
+  replicas: 2
+ingester:
+  persistentVolume:
+    enabled: false
+  replicas: 2
+  zoneAwareReplication:
+    enabled: false
+mimir:
+  structuredConfig:
+    blocks_storage:
+      backend: filesystem
+      bucket_store:
+        sync_dir: /data/mimir/sync
+      filesystem:
+        dir: /data/mimir/filesystem
+      tsdb:
+        dir: /data/mimir/tsdb
+    compactor:
+      working_directory: /data/mimir/compactor
+    ingester:
+      ring:
+        zone_awareness_enabled: false
+    limits:
+      ingestion_burst_size: 20000
+      ingestion_rate: 10000
+    store_gateway:
+      sharding_ring:
+        zone_awareness_enabled: false
+minio:
+  enabled: false
+nginx:
+  service:
+    type: LoadBalancer
+querier:
+  replicas: 2
+query_frontend:
+  replicas: 2
+ruler:
+  enabled: false
+store_gateway:
+  persistentVolume:
+    enabled: false
+  replicas: 2
+  zoneAwareReplication:
+    enabled: false
+
