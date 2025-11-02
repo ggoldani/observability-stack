@@ -1,0 +1,20 @@
+# Claude Code configuration
+CLAUDE.md
+
+# Helm dependency charts
+charts/**/charts/
+charts/**/Chart.lock
+
+# Temporary files
+*.tmp
+*.swp
+*~
+
+# Local environment files
+.env
+.env.local
+
+# IDE files
+.vscode/
+.idea/
+*.iml
