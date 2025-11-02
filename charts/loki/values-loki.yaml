@@ -9,6 +9,10 @@
       replication_factor: 1
     storage:
       type: 'filesystem'
+      bucketNames:
+        chunks: chunks
+        ruler: ruler
+        admin: admin
     schemaConfig:
       configs:
         - from: 2024-04-01
@@ -63,5 +67,12 @@
 
   # Test framework disabled
   test:
+    enabled: false
+
+ # Disable cache components to save memory (lab environment)
+  chunksCache:
+    enabled: false
+
+  resultsCache:
     enabled: false
 
