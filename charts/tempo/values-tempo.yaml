@@ -1,0 +1,53 @@
+# Tempo configuration for 3-worker kind cluster (lab environment)
+  # Deployment mode: monolithic (not distributed, to save resources)
+
+  tempo:
+    # Monolithic mode - all components in one pod
+    structuredConfig:
+      multitenancy_enabled: false
+    storage:
+      trace:
+        backend: local
+        local:
+          path: /var/tempo/traces
+
+    # Resource limits for lab
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi
+
+  # Persistence for trace storage
+  persistence:
+    enabled: true
+    size: 2Gi
+
+  # Gateway with LoadBalancer for external access
+  gateway:
+    enabled: true
+    service:
+      type: LoadBalancer
+
+  # Disable distributed mode components
+  distributor:
+    replicas: 0
+
+  ingester:
+    replicas: 0
+
+  querier:
+    replicas: 0
+
+  queryFrontend:
+    replicas: 0
+
+  compactor:
+    replicas: 0
+
+  # Metrics generator disabled for lab simplicity
+  metricsGenerator:
+    enabled: false
+
