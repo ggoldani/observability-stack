@@ -12,16 +12,42 @@ datasources:
   datasources.yaml:
     apiVersion: 1
     datasources:
+    # Mimir (metrics - prometheus compatible)
     - name: Mimir
       type: prometheus
-      url: http://mimir-nginx.observability.svc:80/prometheus  # Replace with actual IP or svc
+      url: http://mimir-gateway.observability.svc:80/prometheus
       access: proxy
       isDefault: true
       jsonData:
-        httpMethod: GET
+        httpMethod: POST
         exemplarTraceIdDestinations:
           - name: trace_id
-            datasourceUid: tempo # We will create in Tempo installation
+            datasourceUid: tempo
+
+    # Loki (logs)
+    - name: Loki
+      type: loki
+      url: http://loki-gateway.observability.svc:80
+      jsonData:
+        derivedFields:
+          - datasourceUid: tempo
+            matcherRegex: "trace_id=(\\w+)"
+            name: TraceID
+            url: "$${__value.raw}"
+
+    # Tempo (traces)
+    - name: Tempo
+      type: tempo
+      uid: tempo
+      url: http://tempo.observability.svc:3200
+      access: proxy
+      jsonData:
+        tracesToLogs:
+          datasourceUid: loki
+        tracesToMetrics:
+          datasourceUid: mimir
+        serviceMap:
+          datasourceUid: mimir
 
 # Service as LoadBalancer for external access
 service:
