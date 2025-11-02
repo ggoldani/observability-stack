@@ -25,27 +25,9 @@
     enabled: true
     size: 2Gi
 
-  # Gateway with LoadBalancer for external access
-  gateway:
-    enabled: true
-    service:
-      type: LoadBalancer
-
-  # Disable distributed mode components
-  distributor:
-    replicas: 0
-
-  ingester:
-    replicas: 0
-
-  querier:
-    replicas: 0
-
-  queryFrontend:
-    replicas: 0
-
-  compactor:
-    replicas: 0
+  # Expose Tempo service as LoadBalancer
+  service:
+    type: LoadBalancer
 
   # Metrics generator disabled for lab simplicity
   metricsGenerator:
