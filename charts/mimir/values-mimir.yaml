@@ -1,55 +1,58 @@
-# charts/mimir/values-mimir.yaml
-# Mimir - LAB no Kind com structuredConfig (evita conflitos do chart)
-
-alertmanager:
-  enabled: false
-compactor:
-  persistentVolume:
-    enabled: false
+# Replicas optimized for 3-worker kind cluster (small homelab)
 distributor:
   replicas: 2
 ingester:
-  persistentVolume:
-    enabled: false
   replicas: 2
-  zoneAwareReplication:
-    enabled: false
-mimir:
-  structuredConfig:
-    blocks_storage:
-      backend: filesystem
-      bucket_store:
-        sync_dir: /data/mimir/sync
-      filesystem:
-        dir: /data/mimir/filesystem
-      tsdb:
-        dir: /data/mimir/tsdb
-    compactor:
-      working_directory: /data/mimir/compactor
-    ingester:
-      ring:
-        zone_awareness_enabled: false
-    limits:
-      ingestion_burst_size: 20000
-      ingestion_rate: 10000
-    store_gateway:
-      sharding_ring:
-        zone_awareness_enabled: false
-minio:
-  enabled: false
-nginx:
-  service:
-    type: LoadBalancer
 querier:
   replicas: 2
 query_frontend:
-  replicas: 2
+  replicas: 1
+store_gateway:
+  replicas: 1
+compactor:
+  replicas: 1
+overrides_exporter:
+  replicas: 1
+# Gateway (nginx proxy) with LoadBalancer for external access
+gateway:
+  enabled: true
+  service:
+    type: LoadBalancer
+  nginx:
+    basicAuth:
+      enabled: false  # Disable for lab; enable with username/password in production
+# Enable MinIO for object storage (auto-configured by chart)
+minio:
+  enabled: true
+  mode: standalone
+  rootUser: grafana-mimir
+  rootPassword: supersecret  # Change in production!
+  persistence:
+    enabled: true
+    size: 5Gi
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+# Disable Alertmanager for lab simplicity
+alertmanager:
+  enabled: false
+# Mimir config overrides (minimal for homelab)
+mimir:
+  structuredConfig:
+    multitenancy_enabled: false
+    server:
+      log_level: info
+    # Chart auto-handles S3 config for MinIO
+# Disable other optional components for simplicity
 ruler:
   enabled: false
-store_gateway:
-  persistentVolume:
+continuous_test:
+  enabled: false
+smoke_test:
+  enabled: false
+metaMonitoring:
+  serviceMonitor:
     enabled: false
-  replicas: 2
-  zoneAwareReplication:
+  grafanaAgent:
     enabled: false
-
