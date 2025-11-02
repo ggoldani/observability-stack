@@ -1,0 +1,37 @@
+# Basic Grafana settings
+adminUser: admin
+adminPassword: admin  # Change in production
+
+# Persistence for dashboards/data
+persistence:
+  enabled: true
+  size: 1Gi
+
+# Pre-configure data sources (Mimir as Prometheus)
+datasources:
+  datasources.yaml:
+    apiVersion: 1
+    datasources:
+    - name: Mimir
+      type: prometheus
+      url: http://mimir-nginx.observability.svc:80/prometheus  # Replace with actual IP or svc
+      access: proxy
+      isDefault: true
+      jsonData:
+        httpMethod: GET
+        exemplarTraceIdDestinations:
+          - name: trace_id
+            datasourceUid: tempo # We will create in Tempo installation
+
+# Service as LoadBalancer for external access
+service:
+  type: LoadBalancer
+
+# Disable plugins/subcharts for simplicity
+plugins: []
+sidecar:
+  dashboards:
+    enabled: false
+  datasources:
+    enabled: false
+
