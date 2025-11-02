@@ -1,0 +1,67 @@
+  # Loki configuration for 3-worker kind cluster (lab environment)
+  # Deployment mode: simple monolithic (not distributed, to save resources)
+
+  deploymentMode: SingleBinary
+
+  loki:
+    auth_enabled: false  # Disable multitenancy for lab simplicity
+    commonConfig:
+      replication_factor: 1
+    storage:
+      type: 'filesystem'
+    schemaConfig:
+      configs:
+        - from: 2024-04-01
+          store: tsdb
+          object_store: filesystem
+          schema: v13
+          index:
+            prefix: loki_index_
+            period: 24h
+
+  # Single binary deployment (all components in one pod)
+  singleBinary:
+    replicas: 1
+    persistence:
+      enabled: true
+      size: 3Gi
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        cpu: 1000m
+        memory: 1Gi
+
+  # Gateway with LoadBalancer for external access
+  gateway:
+    enabled: true
+    replicas: 1
+    service:
+      type: LoadBalancer
+    resources:
+      requests:
+        cpu: 50m
+        memory: 64Mi
+
+  # Disable components not needed in single binary mode
+  backend:
+    replicas: 0
+  read:
+    replicas: 0
+  write:
+    replicas: 0
+
+  # Monitoring disabled for lab simplicity
+  monitoring:
+    selfMonitoring:
+      enabled: false
+      grafanaAgent:
+        installOperator: false
+    lokiCanary:
+      enabled: false
+
+  # Test framework disabled
+  test:
+    enabled: false
+
