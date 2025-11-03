@@ -1,5 +1,10 @@
   # OpenTelemetry Collector configuration for SRE Lab
   # Receives OTLP telemetry and exports to Mimir, Loki, and Tempo
+ 
+  # Container image configuration
+  image:
+    repository: otel/opentelemetry-collector-k8s
+    tag: ""  # Uses chart's default app version (0.138.0)
 
   mode: deployment
   replicaCount: 1
