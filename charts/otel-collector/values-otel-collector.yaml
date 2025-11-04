@@ -3,7 +3,7 @@
  
   # Container image configuration
   image:
-    repository: otel/opentelemetry-collector-k8s
+    repository: otel/opentelemetry-collector-contrib
     tag: ""  # Uses chart's default app version (0.138.0)
 
   mode: deployment
@@ -52,13 +52,11 @@
             endpoint: 0.0.0.0:4318
 
     exporters:
-      # Export logs to Loki
-      loki:
-        endpoint: http://loki-gateway.observability.svc:80/loki/api/v1/push
-        labels:
-          resource:
-            service.name: "service_name"
-            service.namespace: "service_namespace"
+      # Export logs to Loki via OTLP HTTP
+      otlphttp/loki:
+        endpoint: http://loki-gateway.observability.svc:80/otlp
+        tls:
+          insecure: true
 
       # Export metrics to Mimir via Prometheus Remote Write
       prometheusremotewrite:
@@ -73,18 +71,18 @@
           insecure: true
 
       # Logging exporter for debugging
-      logging:
-        loglevel: info
+      debug:
+        verbosity: detailed
 
     service:
       pipelines:
         logs:
           receivers: [otlp]
-          exporters: [loki, logging]
+          exporters: [otlphttp/loki, debug]
         metrics:
           receivers: [otlp]
-          exporters: [prometheusremotewrite, logging]
+          exporters: [prometheusremotewrite, debug]
         traces:
           receivers: [otlp]
-          exporters: [otlp/tempo, logging]
+          exporters: [otlp/tempo, debug]
 
