@@ -67,6 +67,7 @@ echo ""
 # Add Helm repositories
 echo -e "${GREEN}Adding Helm repositories...${NC}"
 helm repo add grafana https://grafana.github.io/helm-charts
+helm repo add open-telemetry https://open-telemetry.github.io/opentelemetry-helm-charts
 helm repo update
 echo -e "${GREEN}✓ Helm repositories updated${NC}"
 echo ""
@@ -121,6 +122,19 @@ helm upgrade --install grafana grafana/grafana \
     --wait \
     --timeout 5m
 echo -e "${GREEN}✓ Grafana installed successfully${NC}"
+echo ""
+
+# Install OpenTelemetry Collector
+echo -e "${BLUE}=== Installing OpenTelemetry Collector (Telemetry Pipeline) ===${NC}"
+if helm list -n "${NAMESPACE}" | grep -q "^otel-collector"; then
+    echo -e "${YELLOW}OTel Collector is already installed. Upgrading...${NC}"
+fi
+helm upgrade --install otel-collector open-telemetry/opentelemetry-collector \
+    -f "${SCRIPT_DIR}/charts/otel-collector/values-otel-collector.yaml" \
+    -n "${NAMESPACE}" \
+    --wait \
+    --timeout 5m
+echo -e "${GREEN}✓ OpenTelemetry Collector installed successfully${NC}"
 echo ""
 
 # Get Grafana admin password
@@ -213,6 +227,16 @@ if [ -n "$TEMPO_IP" ]; then
     echo ""
 fi
 
+# OpenTelemetry Collector
+OTEL_IP=$(kubectl get svc otel-collector-opentelemetry-collector -n "${NAMESPACE}" -o jsonpath='{.status.loadBalancer.ingress[0].ip}' 2>/dev/null)
+if [ -n "$OTEL_IP" ]; then
+    echo -e "${BLUE}OpenTelemetry Collector (Telemetry Pipeline):${NC}"
+    echo "  OTLP gRPC: ${OTEL_IP}:4317"
+    echo "  OTLP HTTP: ${OTEL_IP}:4318"
+    echo "  Metrics: http://${OTEL_IP}:8888/metrics"
+    echo ""
+fi
+
 # Display storage
 echo -e "${BLUE}Persistent Volumes:${NC}"
 kubectl get pvc -n "${NAMESPACE}"
@@ -227,7 +251,10 @@ echo "   - Mimir (Metrics)"
 echo "   - Loki (Logs)"
 echo "   - Tempo (Traces)"
 echo ""
-echo "3. To deploy OpenTelemetry Collector, check TODO-next-steps.md"
+echo "3. Send telemetry to OpenTelemetry Collector:"
+echo "   - OTLP gRPC endpoint: ${OTEL_IP}:4317"
+echo "   - OTLP HTTP endpoint: ${OTEL_IP}:4318"
+echo "   - Collector will forward logs→Loki, metrics→Mimir, traces→Tempo"
 echo ""
 echo "4. Useful commands:"
 echo "   - View all pods: kubectl get pods -n ${NAMESPACE}"
